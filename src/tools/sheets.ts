@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { google } from "googleapis";
 import { z } from "zod";
-import { createAuthClient } from "../auth.js";
+import { createAuthClient, getDefaultUserEmail } from "../auth.js";
 
 export function registerSheetsTools(server: McpServer): void {
   // ── get_spreadsheet ───────────────────────────────────────────────
@@ -13,14 +13,16 @@ export function registerSheetsTools(server: McpServer): void {
       userEmail: z
         .string()
         .email()
-        .describe("Email address of a user with access to the spreadsheet"),
+        .optional()
+        .describe("Email address of a user with access to the spreadsheet (defaults to GW_USER_EMAIL)"),
       spreadsheetId: z
         .string()
         .describe("Google Spreadsheet ID (from search_drive_files results or the URL)"),
     },
     async ({ userEmail, spreadsheetId }) => {
       try {
-        const auth = createAuthClient(userEmail);
+        const resolvedEmail = userEmail || getDefaultUserEmail();
+        const auth = createAuthClient(resolvedEmail);
         const sheets = google.sheets({ version: "v4", auth });
 
         const response = await sheets.spreadsheets.get({
@@ -77,7 +79,8 @@ export function registerSheetsTools(server: McpServer): void {
       userEmail: z
         .string()
         .email()
-        .describe("Email address of a user with access to the spreadsheet"),
+        .optional()
+        .describe("Email address of a user with access to the spreadsheet (defaults to GW_USER_EMAIL)"),
       spreadsheetId: z
         .string()
         .describe("Google Spreadsheet ID"),
@@ -95,7 +98,8 @@ export function registerSheetsTools(server: McpServer): void {
     },
     async ({ userEmail, spreadsheetId, range, includeFormulas }) => {
       try {
-        const auth = createAuthClient(userEmail);
+        const resolvedEmail = userEmail || getDefaultUserEmail();
+        const auth = createAuthClient(resolvedEmail);
         const sheets = google.sheets({ version: "v4", auth });
 
         const response = await sheets.spreadsheets.values.get({
@@ -169,7 +173,8 @@ export function registerSheetsTools(server: McpServer): void {
       userEmail: z
         .string()
         .email()
-        .describe("Email address of a user with access to the spreadsheet"),
+        .optional()
+        .describe("Email address of a user with access to the spreadsheet (defaults to GW_USER_EMAIL)"),
       spreadsheetId: z
         .string()
         .describe("Google Spreadsheet ID"),
@@ -182,7 +187,8 @@ export function registerSheetsTools(server: McpServer): void {
     },
     async ({ userEmail, spreadsheetId, ranges }) => {
       try {
-        const auth = createAuthClient(userEmail);
+        const resolvedEmail = userEmail || getDefaultUserEmail();
+        const auth = createAuthClient(resolvedEmail);
         const sheets = google.sheets({ version: "v4", auth });
 
         const response = await sheets.spreadsheets.values.batchGet({

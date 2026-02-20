@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { google, type docs_v1 } from "googleapis";
 import { z } from "zod";
-import { createAuthClient } from "../auth.js";
+import { createAuthClient, getDefaultUserEmail } from "../auth.js";
 
 /**
  * Recursively extract plain text from a Google Docs document body.
@@ -108,7 +108,8 @@ export function registerDocsTools(server: McpServer): void {
       userEmail: z
         .string()
         .email()
-        .describe("Email address of a user with access to the document"),
+        .optional()
+        .describe("Email address of a user with access to the document (defaults to GW_USER_EMAIL)"),
       documentId: z
         .string()
         .describe(
@@ -117,7 +118,8 @@ export function registerDocsTools(server: McpServer): void {
     },
     async ({ userEmail, documentId }) => {
       try {
-        const auth = createAuthClient(userEmail);
+        const resolvedEmail = userEmail || getDefaultUserEmail();
+        const auth = createAuthClient(resolvedEmail);
         const docs = google.docs({ version: "v1", auth });
 
         const response = await docs.documents.get({ documentId });
@@ -163,14 +165,16 @@ export function registerDocsTools(server: McpServer): void {
       userEmail: z
         .string()
         .email()
-        .describe("Email address of a user with access to the document"),
+        .optional()
+        .describe("Email address of a user with access to the document (defaults to GW_USER_EMAIL)"),
       documentId: z
         .string()
         .describe("Google Docs document ID"),
     },
     async ({ userEmail, documentId }) => {
       try {
-        const auth = createAuthClient(userEmail);
+        const resolvedEmail = userEmail || getDefaultUserEmail();
+        const auth = createAuthClient(resolvedEmail);
         const docs = google.docs({ version: "v1", auth });
 
         const response = await docs.documents.get({ documentId });

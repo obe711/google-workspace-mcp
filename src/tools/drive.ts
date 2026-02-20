@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { google } from "googleapis";
 import { z } from "zod";
-import { createAuthClient } from "../auth.js";
+import { createAuthClient, getDefaultUserEmail } from "../auth.js";
 import { truncate, formatFileSize } from "../utils.js";
 
 /**
@@ -64,7 +64,8 @@ export function registerDriveTools(server: McpServer): void {
       userEmail: z
         .string()
         .email()
-        .describe("Email address of the user whose Drive to search"),
+        .optional()
+        .describe("Email address of the user whose Drive to search (defaults to GW_USER_EMAIL)"),
       query: z
         .string()
         .describe("Drive search query (Drive API query syntax)"),
@@ -77,7 +78,8 @@ export function registerDriveTools(server: McpServer): void {
     },
     async ({ userEmail, query, maxResults }) => {
       try {
-        const auth = createAuthClient(userEmail);
+        const resolvedEmail = userEmail || getDefaultUserEmail();
+        const auth = createAuthClient(resolvedEmail);
         const drive = google.drive({ version: "v3", auth });
 
         const response = await drive.files.list({
@@ -152,7 +154,8 @@ export function registerDriveTools(server: McpServer): void {
       userEmail: z
         .string()
         .email()
-        .describe("Email address of the user who owns the file"),
+        .optional()
+        .describe("Email address of the user who owns the file (defaults to GW_USER_EMAIL)"),
       fileId: z
         .string()
         .describe(
@@ -161,7 +164,8 @@ export function registerDriveTools(server: McpServer): void {
     },
     async ({ userEmail, fileId }) => {
       try {
-        const auth = createAuthClient(userEmail);
+        const resolvedEmail = userEmail || getDefaultUserEmail();
+        const auth = createAuthClient(resolvedEmail);
         const drive = google.drive({ version: "v3", auth });
 
         // Step 1: Get file metadata
@@ -261,14 +265,16 @@ export function registerDriveTools(server: McpServer): void {
       userEmail: z
         .string()
         .email()
-        .describe("Email address of the user who owns the file"),
+        .optional()
+        .describe("Email address of the user who owns the file (defaults to GW_USER_EMAIL)"),
       fileId: z
         .string()
         .describe("Google Drive file ID"),
     },
     async ({ userEmail, fileId }) => {
       try {
-        const auth = createAuthClient(userEmail);
+        const resolvedEmail = userEmail || getDefaultUserEmail();
+        const auth = createAuthClient(resolvedEmail);
         const drive = google.drive({ version: "v3", auth });
 
         const response = await drive.files.get({

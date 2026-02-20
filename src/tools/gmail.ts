@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { google } from "googleapis";
 import { z } from "zod";
-import { createAuthClient } from "../auth.js";
+import { createAuthClient, getDefaultUserEmail } from "../auth.js";
 import {
   extractEmailBody,
   getReadableBody,
@@ -21,7 +21,8 @@ export function registerGmailTools(server: McpServer): void {
       userEmail: z
         .string()
         .email()
-        .describe("Email address of the user to search"),
+        .optional()
+        .describe("Email address of the user to search (defaults to GW_USER_EMAIL)"),
       query: z
         .string()
         .describe(
@@ -36,7 +37,8 @@ export function registerGmailTools(server: McpServer): void {
     },
     async ({ userEmail, query, maxResults }) => {
       try {
-        const auth = createAuthClient(userEmail);
+        const resolvedEmail = userEmail || getDefaultUserEmail();
+        const auth = createAuthClient(resolvedEmail);
         const gmail = google.gmail({ version: "v1", auth });
 
         // Step 1: Get message IDs matching the query
@@ -121,14 +123,16 @@ export function registerGmailTools(server: McpServer): void {
       userEmail: z
         .string()
         .email()
-        .describe("Email address of the user who owns the message"),
+        .optional()
+        .describe("Email address of the user who owns the message (defaults to GW_USER_EMAIL)"),
       messageId: z
         .string()
         .describe("Gmail message ID (from search_emails results)"),
     },
     async ({ userEmail, messageId }) => {
       try {
-        const auth = createAuthClient(userEmail);
+        const resolvedEmail = userEmail || getDefaultUserEmail();
+        const auth = createAuthClient(resolvedEmail);
         const gmail = google.gmail({ version: "v1", auth });
 
         const response = await gmail.users.messages.get({
@@ -195,11 +199,13 @@ export function registerGmailTools(server: McpServer): void {
       userEmail: z
         .string()
         .email()
-        .describe("Email address of the user"),
+        .optional()
+        .describe("Email address of the user (defaults to GW_USER_EMAIL)"),
     },
     async ({ userEmail }) => {
       try {
-        const auth = createAuthClient(userEmail);
+        const resolvedEmail = userEmail || getDefaultUserEmail();
+        const auth = createAuthClient(resolvedEmail);
         const gmail = google.gmail({ version: "v1", auth });
 
         const response = await gmail.users.labels.list({ userId: "me" });
@@ -229,7 +235,7 @@ export function registerGmailTools(server: McpServer): void {
           return `- [${label.id}] ${parts.join(", ")}`;
         });
 
-        const text = `Gmail labels for ${userEmail}:\n\n${lines.join("\n")}`;
+        const text = `Gmail labels for ${resolvedEmail}:\n\n${lines.join("\n")}`;
         return { content: [{ type: "text" as const, text }] };
       } catch (error: unknown) {
         const message =

@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { google } from "googleapis";
 import { z } from "zod";
-import { createAuthClient } from "../auth.js";
+import { createAuthClient, getDefaultUserEmail } from "../auth.js";
 
 export function registerAdminTools(server: McpServer): void {
   server.tool(
@@ -11,8 +11,9 @@ export function registerAdminTools(server: McpServer): void {
       userEmail: z
         .string()
         .email()
+        .optional()
         .describe(
-          "Email of a Workspace admin to impersonate (must have admin privileges)"
+          "Email of a Workspace admin to impersonate (defaults to GW_USER_EMAIL, must have admin privileges)"
         ),
       domain: z
         .string()
@@ -35,7 +36,8 @@ export function registerAdminTools(server: McpServer): void {
     },
     async ({ userEmail, domain, query, maxResults }) => {
       try {
-        const auth = createAuthClient(userEmail);
+        const resolvedEmail = userEmail || getDefaultUserEmail();
+        const auth = createAuthClient(resolvedEmail);
         const admin = google.admin({ version: "directory_v1", auth });
 
         const allUsers: Array<{

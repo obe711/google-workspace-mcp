@@ -39,6 +39,21 @@ const SCOPES = [
 ];
 
 /**
+ * Returns the default user email from the GW_USER_EMAIL environment variable.
+ * Throws if the variable is not set and no email was provided.
+ */
+export function getDefaultUserEmail(): string {
+  const email = process.env.GW_USER_EMAIL;
+  if (!email) {
+    throw new Error(
+      "GW_USER_EMAIL environment variable is not set. " +
+        "Set it in your .env file or pass userEmail explicitly."
+    );
+  }
+  return email;
+}
+
+/**
  * Creates a Google auth JWT client configured for domain-wide delegation,
  * impersonating the specified user.
  *
