@@ -1,0 +1,8 @@
+node_modules/
+build/
+service-account-key.json
+credentials.json
+gcp-oauth.keys.json
+.env
+*.pem
+CLAUDE.md
