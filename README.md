@@ -80,7 +80,7 @@ For each one, click **Enable**.
 ## Installation
 
 ```bash
-git clone <repo-url>
+git clone git@github.com:obe711/google-workspace-mcp.git
 cd google-workspace-mcp
 npm install
 npm run build
@@ -95,9 +95,8 @@ npm run build
    ```
 
 2. Edit `.env` and set:
-
    - **`GOOGLE_SERVICE_ACCOUNT_KEY_PATH`** — Absolute path to your service account JSON key file
-   - **`GW_USER_EMAIL`** — The Google Workspace email address to impersonate (e.g., `you@yourdomain.com`)
+   - **`GW_USER_EMAIL`** — The default Google Workspace email to impersonate when `userEmail` is not passed to a tool (e.g., `you@yourdomain.com`)
 
    ```dotenv
    GOOGLE_SERVICE_ACCOUNT_KEY_PATH=/Users/me/keys/service-account-key.json
@@ -118,27 +117,15 @@ Add the server to your Claude Code MCP config (project-level `.mcp.json` or glob
     "google-workspace": {
       "command": "node",
       "args": ["build/index.js"],
-      "cwd": "/absolute/path/to/google-workspace-mcp",
-      "env": {
-        "GOOGLE_SERVICE_ACCOUNT_KEY_PATH": "/absolute/path/to/service-account-key.json"
-      }
+      "cwd": "/absolute/path/to/google-workspace-mcp"
     }
   }
 }
 ```
 
-### 2. Set your workspace email
+The server reads all configuration from the `.env` file — no `env` overrides are needed in the MCP config.
 
-The `/gw` skill uses the `GW_USER_EMAIL` environment variable to know which user to impersonate. Set it in your shell profile:
-
-```bash
-# Add to ~/.zshrc or ~/.bashrc
-export GW_USER_EMAIL="you@yourdomain.com"
-```
-
-Then restart Claude Code (or run `source ~/.zshrc`).
-
-### 3. Use the `/gw` skill
+### 2. Use the `/gw` skill
 
 Once configured, use the `/gw` slash command in Claude Code:
 
@@ -151,20 +138,20 @@ Once configured, use the `/gw` slash command in Claude Code:
 
 ## Available Tools
 
-| Tool | Description |
-|------|-------------|
-| `search_emails` | Search Gmail using Gmail query syntax |
-| `get_email` | Get full content of an email by message ID |
-| `list_labels` | List all Gmail labels |
-| `search_drive_files` | Search Google Drive files |
-| `get_file_content` | Read the content of a Drive file |
-| `get_file_metadata` | Get metadata for a Drive file |
-| `get_spreadsheet` | Get spreadsheet metadata (sheets, dimensions) |
-| `read_sheet_range` | Read cell values from a spreadsheet range |
-| `batch_read_sheet_ranges` | Read multiple spreadsheet ranges at once |
-| `get_document` | Get full text content of a Google Doc |
-| `get_document_structure` | Get heading outline of a Google Doc |
-| `list_users` | List Google Workspace users (requires admin) |
+| Tool                      | Description                                   |
+| ------------------------- | --------------------------------------------- |
+| `search_emails`           | Search Gmail using Gmail query syntax         |
+| `get_email`               | Get full content of an email by message ID    |
+| `list_labels`             | List all Gmail labels                         |
+| `search_drive_files`      | Search Google Drive files                     |
+| `get_file_content`        | Read the content of a Drive file              |
+| `get_file_metadata`       | Get metadata for a Drive file                 |
+| `get_spreadsheet`         | Get spreadsheet metadata (sheets, dimensions) |
+| `read_sheet_range`        | Read cell values from a spreadsheet range     |
+| `batch_read_sheet_ranges` | Read multiple spreadsheet ranges at once      |
+| `get_document`            | Get full text content of a Google Doc         |
+| `get_document_structure`  | Get heading outline of a Google Doc           |
+| `list_users`              | List Google Workspace users (requires admin)  |
 
 ## Development
 
