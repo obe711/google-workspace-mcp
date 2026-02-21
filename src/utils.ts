@@ -3,7 +3,7 @@ import type { gmail_v1 } from "googleapis";
 export interface ParsedEmail {
   textBody: string | null;
   htmlBody: string | null;
-  attachments: Array<{ filename: string; mimeType: string; size: number }>;
+  attachments: Array<{ filename: string; mimeType: string; size: number; attachmentId: string | null }>;
 }
 
 /**
@@ -39,6 +39,7 @@ export function extractEmailBody(
         filename: part.filename,
         mimeType,
         size: part.body?.size || 0,
+        attachmentId: part.body?.attachmentId || null,
       });
       return;
     }

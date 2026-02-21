@@ -168,8 +168,12 @@ export function registerGmailTools(server: McpServer): void {
 
         if (parsed.attachments.length > 0) {
           text += `\n\n--- Attachments (${parsed.attachments.length}) ---\n`;
+          text += `(Use get_email_attachment with the message ID and attachment ID to download)\n`;
           for (const att of parsed.attachments) {
             text += `\n- ${att.filename} (${att.mimeType}, ${formatFileSize(att.size)})`;
+            if (att.attachmentId) {
+              text += `\n  Attachment ID: ${att.attachmentId}`;
+            }
           }
         }
 
@@ -183,6 +187,144 @@ export function registerGmailTools(server: McpServer): void {
             {
               type: "text" as const,
               text: `Error getting email: ${message}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  // ── get_email_attachment ──────────────────────────────────────────
+  server.tool(
+    "get_email_attachment",
+    "Download an email attachment by message ID and attachment ID. " +
+      "Returns image content for image attachments (viewable by the LLM), " +
+      "decoded text for text-based files, or base64 data for binary files. " +
+      "Use get_email first to find attachment IDs.",
+    {
+      userEmail: z
+        .string()
+        .email()
+        .optional()
+        .describe("Email address of the user who owns the message (defaults to GW_USER_EMAIL)"),
+      messageId: z
+        .string()
+        .describe("Gmail message ID (from search_emails results)"),
+      attachmentId: z
+        .string()
+        .describe("Attachment ID (from get_email results)"),
+    },
+    async ({ userEmail, messageId, attachmentId }) => {
+      try {
+        const resolvedEmail = userEmail || getDefaultUserEmail();
+        const auth = createAuthClient(resolvedEmail);
+        const gmail = google.gmail({ version: "v1", auth });
+
+        // Fetch the full message to find attachment metadata (filename, mimeType)
+        const msgResponse = await gmail.users.messages.get({
+          userId: "me",
+          id: messageId,
+          format: "full",
+        });
+
+        const parsed = msgResponse.data.payload
+          ? extractEmailBody(msgResponse.data.payload)
+          : { textBody: null, htmlBody: null, attachments: [] };
+
+        const attachmentMeta = parsed.attachments.find(
+          (att) => att.attachmentId === attachmentId
+        );
+        const filename = attachmentMeta?.filename || "attachment";
+        const mimeType = attachmentMeta?.mimeType || "application/octet-stream";
+
+        // Download the attachment data
+        const attResponse = await gmail.users.messages.attachments.get({
+          userId: "me",
+          messageId,
+          id: attachmentId,
+        });
+
+        const base64UrlData = attResponse.data.data;
+        if (!base64UrlData) {
+          return {
+            content: [{ type: "text" as const, text: "Attachment data is empty." }],
+            isError: true,
+          };
+        }
+
+        // Convert base64url to standard base64
+        const base64Data = base64UrlData.replace(/-/g, "+").replace(/_/g, "/");
+
+        // Return based on content type
+        if (mimeType.startsWith("image/")) {
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Attachment: ${filename} (${mimeType}, ${formatFileSize(attResponse.data.size)})`,
+              },
+              {
+                type: "image" as const,
+                data: base64Data,
+                mimeType,
+              },
+            ],
+          };
+        }
+
+        // Text-based content types
+        const textTypes = [
+          "text/",
+          "application/json",
+          "application/xml",
+          "application/javascript",
+          "application/typescript",
+          "application/x-yaml",
+          "application/yaml",
+          "application/csv",
+          "application/sql",
+        ];
+        const isText = textTypes.some((t) => mimeType.startsWith(t));
+
+        if (isText) {
+          const decoded = Buffer.from(base64Data, "base64").toString("utf-8");
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `Attachment: ${filename} (${mimeType}, ${formatFileSize(attResponse.data.size)})\n\n${truncate(decoded)}`,
+              },
+            ],
+          };
+        }
+
+        // Binary files — return as resource with base64 blob
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Attachment: ${filename} (${mimeType}, ${formatFileSize(attResponse.data.size)})\n\nBinary file returned as base64-encoded resource below.`,
+            },
+            {
+              type: "resource" as const,
+              resource: {
+                uri: `attachment:///${messageId}/${encodeURIComponent(filename)}`,
+                mimeType,
+                blob: base64Data,
+              },
+            },
+          ],
+        };
+      } catch (error: unknown) {
+        const message =
+          error instanceof Error ? error.message : String(error);
+        console.error(`[get_email_attachment] Error: ${message}`);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Error getting attachment: ${message}`,
             },
           ],
           isError: true,
