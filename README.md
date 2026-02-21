@@ -18,6 +18,7 @@ https://www.googleapis.com/auth/drive.readonly
 https://www.googleapis.com/auth/admin.directory.user.readonly
 https://www.googleapis.com/auth/spreadsheets.readonly
 https://www.googleapis.com/auth/documents.readonly
+https://www.googleapis.com/auth/calendar.readonly
 ```
 
 ## Google Cloud Setup
@@ -38,6 +39,8 @@ Enable the following APIs in **APIs & Services > Library** (or click the links b
 - [Google Sheets API](https://console.cloud.google.com/apis/library/sheets.googleapis.com)
 - [Google Docs API](https://console.cloud.google.com/apis/library/docs.googleapis.com)
 - [Admin SDK API](https://console.cloud.google.com/apis/library/admin.googleapis.com)
+- [Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com)
+- [Slides API](https://console.cloud.google.com/apis/library/slides.googleapis.com)
 
 For each one, click **Enable**.
 
@@ -70,7 +73,7 @@ For each one, click **Enable**.
 6. In the **OAuth scopes** field, paste all five scopes (comma-separated):
 
    ```
-   https://www.googleapis.com/auth/gmail.readonly,https://www.googleapis.com/auth/drive.readonly,https://www.googleapis.com/auth/admin.directory.user.readonly,https://www.googleapis.com/auth/spreadsheets.readonly,https://www.googleapis.com/auth/documents.readonly
+   https://www.googleapis.com/auth/gmail.readonly,https://www.googleapis.com/auth/drive.readonly,https://www.googleapis.com/auth/admin.directory.user.readonly,https://www.googleapis.com/auth/spreadsheets.readonly,https://www.googleapis.com/auth/documents.readonly,https://www.googleapis.com/auth/calendar.readonly
    ```
 
 7. Click **Authorize**
@@ -152,6 +155,10 @@ Once configured, use the `/gw` slash command in Claude Code:
 | `get_document`            | Get full text content of a Google Doc         |
 | `get_document_structure`  | Get heading outline of a Google Doc           |
 | `list_users`              | List Google Workspace users (requires admin)  |
+| `list_calendars`          | List all calendars a user has access to       |
+| `search_events`           | Search/list calendar events in a date range   |
+| `get_event`               | Get full details of a calendar event          |
+| `get_freebusy`            | Query free/busy status for one or more users  |
 
 ## Development
 
