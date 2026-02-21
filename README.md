@@ -1,6 +1,6 @@
 # Google Workspace MCP Server
 
-A read-only [MCP](https://modelcontextprotocol.io/) server that provides access to Google Workspace APIs — Gmail, Drive, Sheets, Docs, and Admin Directory. It uses a GCP service account with domain-wide delegation to impersonate workspace users.
+A read-only [MCP](https://modelcontextprotocol.io/) server that provides access to Google Workspace APIs — Gmail, Drive, Sheets, Docs, Slides, Calendar, and Admin Directory. It uses a GCP service account with domain-wide delegation to impersonate workspace users.
 
 ## Prerequisites
 
@@ -19,6 +19,7 @@ https://www.googleapis.com/auth/admin.directory.user.readonly
 https://www.googleapis.com/auth/spreadsheets.readonly
 https://www.googleapis.com/auth/documents.readonly
 https://www.googleapis.com/auth/calendar.readonly
+https://www.googleapis.com/auth/presentations.readonly
 ```
 
 ## Google Cloud Setup
@@ -39,8 +40,8 @@ Enable the following APIs in **APIs & Services > Library** (or click the links b
 - [Google Sheets API](https://console.cloud.google.com/apis/library/sheets.googleapis.com)
 - [Google Docs API](https://console.cloud.google.com/apis/library/docs.googleapis.com)
 - [Admin SDK API](https://console.cloud.google.com/apis/library/admin.googleapis.com)
-- [Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com)
-- [Slides API](https://console.cloud.google.com/apis/library/slides.googleapis.com)
+- [Google Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com)
+- [Google Slides API](https://console.cloud.google.com/apis/library/slides.googleapis.com)
 
 For each one, click **Enable**.
 
@@ -70,10 +71,10 @@ For each one, click **Enable**.
 3. Click **Manage Domain Wide Delegation**
 4. Click **Add new**
 5. Enter the **Client ID** from step 4
-6. In the **OAuth scopes** field, paste all five scopes (comma-separated):
+6. In the **OAuth scopes** field, paste all seven scopes (comma-separated):
 
    ```
-   https://www.googleapis.com/auth/gmail.readonly,https://www.googleapis.com/auth/drive.readonly,https://www.googleapis.com/auth/admin.directory.user.readonly,https://www.googleapis.com/auth/spreadsheets.readonly,https://www.googleapis.com/auth/documents.readonly,https://www.googleapis.com/auth/calendar.readonly
+   https://www.googleapis.com/auth/gmail.readonly,https://www.googleapis.com/auth/drive.readonly,https://www.googleapis.com/auth/admin.directory.user.readonly,https://www.googleapis.com/auth/spreadsheets.readonly,https://www.googleapis.com/auth/documents.readonly,https://www.googleapis.com/auth/calendar.readonly,https://www.googleapis.com/auth/presentations.readonly
    ```
 
 7. Click **Authorize**
@@ -159,6 +160,9 @@ Once configured, use the `/gw` slash command in Claude Code:
 | `search_events`           | Search/list calendar events in a date range   |
 | `get_event`               | Get full details of a calendar event          |
 | `get_freebusy`            | Query free/busy status for one or more users  |
+| `search_presentations`    | Search for Google Slides presentations         |
+| `get_presentation`        | Get presentation metadata and slide overview   |
+| `get_slide`               | Get full text content of a single slide        |
 
 ## Development
 

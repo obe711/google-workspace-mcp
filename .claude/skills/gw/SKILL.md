@@ -1,6 +1,6 @@
 ---
 name: gw
-description: Query Google Workspace (Gmail, Drive, Sheets, Docs, Admin). Use when searching emails, drive files, reading docs/sheets, or listing users.
+description: Query Google Workspace (Gmail, Drive, Sheets, Docs, Admin, Calendar, Slides). Use when searching emails, drive files, calendar events, presentations, reading docs/sheets, or listing users.
 argument-hint: [query]
 ---
 
